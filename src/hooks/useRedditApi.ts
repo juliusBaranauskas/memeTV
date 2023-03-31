@@ -12,17 +12,17 @@ export type Post = {
   ups: number;
   downs:number;
   url: string;
-}
+};
 
 type RedditCredentials = {
   username: string,
   password: string,
   appId: string,
   appSecret: string,
-}
+};
 
 type RedditApi = {
-  get: (url: string, data: Record<string, any>) => Promise<any>;
+  get: (subreddit: string, url: string, data: Record<string, any>) => Promise<any>;
   isReady: () => boolean;
 };
 
@@ -30,7 +30,7 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
   const { appId, appSecret, password, username } = redditCredentials;
   const [token, setToken] = createSignal<string | undefined>(undefined);
   const [tokenExpireDate, setTokenExpireDate] = createSignal<string | undefined>(undefined);
-  const [latestAfter, setLatestAfter] = createSignal<string | undefined>(undefined);
+  const [latestAfter, setLatestAfter] = createSignal<Record<string, string> | undefined>(undefined);
 
   const authHeader = () => `Basic ${Buffer.from(`${appId}:${appSecret}`).toString('base64')}`;
 
@@ -65,7 +65,12 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
     });
   });
 
-  const get = async (url: string, data: Record<string, string>) => {
+  const getLatestAfter = (subredditName: string) => {
+    console.log(subredditName, latestAfter());
+    return !!latestAfter() ? latestAfter()![subredditName] : undefined;
+  };
+
+  const get = async (subreddit: string, url: string, data: Record<string, string>) => {
 
     if (!token()) {
       console.log('token not yet valid, skipping get request');
@@ -74,7 +79,8 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
 
     const requestData = {
       ...data,
-      after: latestAfter() ?? '',
+      after: getLatestAfter(subreddit) ?? '',
+      raw_json: 1,
     };
 
     const baseUrl = 'https://oauth.reddit.com';
@@ -94,7 +100,10 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
     }
 
     const json = await response.json();
-    setLatestAfter(json.data.after);
+    setLatestAfter(prev => ({
+      ...prev,
+      [subreddit]: json.data.after,
+    }));
 
     const responseJson = json.data.children as Array<any>;
 
@@ -104,7 +113,11 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
       post.data.post_hint === 'image' &&
       post.data.is_video === false;
 
-    const linkPosts = responseJson.filter(onlyImages);
+    const onlySFW = post =>
+      post.data.over_18 === false &&
+      post.data.thumbnail !== 'nsfw';
+
+    const linkPosts = responseJson.filter(onlyImages).filter(onlySFW);
 
     const posts: Post = linkPosts.map(post => {
       const postData = post.data;
