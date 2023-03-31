@@ -15,8 +15,6 @@ export type Post = {
 };
 
 type RedditCredentials = {
-  username: string,
-  password: string,
   appId: string,
   appSecret: string,
 };
@@ -27,7 +25,7 @@ type RedditApi = {
 };
 
 const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
-  const { appId, appSecret, password, username } = redditCredentials;
+  const { appId, appSecret } = redditCredentials;
   const [token, setToken] = createSignal<string | undefined>(undefined);
   const [tokenExpireDate, setTokenExpireDate] = createSignal<string | undefined>(undefined);
   const [latestAfter, setLatestAfter] = createSignal<Record<string, string> | undefined>(undefined);
@@ -36,9 +34,10 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
 
   createEffect(() => {
     const body = new FormData();
-    body.append('grant_type', 'password');
-    body.append('username', username);
-    body.append('password', password);
+    body.append('grant_type', 'client_credentials');
+    body.append('username', appId);
+    body.append('password', appSecret);
+    body.append('scope', 'read');
 
     fetch('https://www.reddit.com/api/v1/access_token', {
       method: 'POST',
