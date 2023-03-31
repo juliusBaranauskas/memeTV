@@ -1,0 +1,25 @@
+name: On push build and push to gh-pages
+
+on:
+    push:
+        branches: [master]
+
+jobs:
+    build:
+        if: github.ref == 'refs/heads/master'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@v2.5.1
+            - name: install dependencies
+              working-directory: .
+              run: yarn install
+            - name: run build
+              working-directory: .
+              run: yarn build
+
+            - name: Deploy to GitHub Pages
+              uses: peaceiris/actions-gh-pages@v3.5.10
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./dist
