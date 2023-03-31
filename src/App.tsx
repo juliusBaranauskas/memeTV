@@ -11,13 +11,9 @@ const memeSubreddits = [
 ];
 
 const App: Component = () => {
-  const username = localStorage.getItem('username');
-  const { get, isReady } = useRedditApi({
-    username: username!,
-    password: localStorage.getItem('password')!,
-    appId: localStorage.getItem('app_id')!,
-    appSecret: localStorage.getItem('app_secret')!,
-  });
+  const appId = localStorage.getItem('app_id');
+  const appSecret = localStorage.getItem('app_secret');
+  const { get, isReady } = useRedditApi({ appId: appId!, appSecret: appSecret! });
 
   const [posts, setPosts] = createSignal<Post[]>([]);
   const [previouslyShown, setPreviouslyShown] = createSignal<string[]>([]);
@@ -82,7 +78,7 @@ const App: Component = () => {
     return <img src={firstMeme()!.url} class={styles.memeImage} alt="meme" />;
   };
 
-  if (!username) return <div>Missing credentials</div>;
+  if (!appId || !appSecret) return <div>Missing credentials</div>;
 
   return (
     <div class={styles.App}>
