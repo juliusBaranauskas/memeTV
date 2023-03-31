@@ -5,17 +5,18 @@ import styles from './App.module.css';
 const memeSubreddits = [
   'memes',
   'aww',
-  'darkstockphotos',
   'ProgrammerHumor',
   'okbuddyretard',
-]
+  'funny',
+];
 
 const App: Component = () => {
+  const username = localStorage.getItem('username');
   const { get, isReady } = useRedditApi({
-    username: '',
-    password: '',
-    appId: '',
-    appSecret: '',
+    username: username!,
+    password: localStorage.getItem('password')!,
+    appId: localStorage.getItem('app_id')!,
+    appSecret: localStorage.getItem('app_secret')!,
   });
 
   const [posts, setPosts] = createSignal<Post[]>([]);
@@ -33,12 +34,12 @@ const App: Component = () => {
     setPosts(prev => prev.concat(newPosts));
   };
 
-  const fetchSomeMemes = (count: number = 5) => {
+  const fetchSomeMemes = (count: number = 3) => {
     if (!isReady()) return;
 
     const randomizedSubreddit = memeSubreddits[Math.floor(Math.random()*(memeSubreddits.length - 1))];
 
-    get(`/r/${randomizedSubreddit}/hot`, { // rising
+    get(randomizedSubreddit, `/r/${randomizedSubreddit}/rising`, {
       g: 'GLOBAL',
       timeframe: 'day',
       limit: `${count}`,
@@ -80,6 +81,8 @@ const App: Component = () => {
 
     return <img src={firstMeme()!.url} class={styles.memeImage} alt="meme" />;
   };
+
+  if (!username) return <div>Missing credentials</div>;
 
   return (
     <div class={styles.App}>
