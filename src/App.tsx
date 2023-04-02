@@ -2,12 +2,14 @@ import { Component, createEffect, createSignal } from 'solid-js';
 import useRedditApi, { Post } from './hooks/useRedditApi';
 import styles from './App.module.css';
 
-const memeSubreddits = [
+const subreddits = [
   'memes',
   'aww',
   'ProgrammerHumor',
   'okbuddyretard',
   'funny',
+  'eyebleach',
+  'mademesmile',
 ];
 
 const App: Component = () => {
@@ -33,7 +35,7 @@ const App: Component = () => {
   const fetchSomeMemes = (count: number = 3) => {
     if (!isReady()) return;
 
-    const randomizedSubreddit = memeSubreddits[Math.floor(Math.random()*(memeSubreddits.length - 1))];
+    const randomizedSubreddit = subreddits[Math.floor(Math.random()*(subreddits.length - 1))];
 
     get(randomizedSubreddit, `/r/${randomizedSubreddit}/rising`, {
       g: 'GLOBAL',
