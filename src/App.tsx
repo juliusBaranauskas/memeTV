@@ -15,7 +15,7 @@ const subreddits = [
 const App: Component = () => {
   const appId = localStorage.getItem('app_id');
   const appSecret = localStorage.getItem('app_secret');
-  const { get, isReady } = useRedditApi({ appId: appId!, appSecret: appSecret! });
+  const { get, isReady: isRedditApiReady } = useRedditApi({ appId: appId!, appSecret: appSecret! });
 
   const [posts, setPosts] = createSignal<Post[]>([]);
   const [previouslyShown, setPreviouslyShown] = createSignal<string[]>([]);
@@ -33,7 +33,7 @@ const App: Component = () => {
   };
 
   const fetchSomeMemes = (count: number = 3) => {
-    if (!isReady()) return;
+    if (!isRedditApiReady()) return;
 
     const randomizedSubreddit = subreddits[Math.floor(Math.random()*(subreddits.length - 1))];
 
@@ -45,17 +45,15 @@ const App: Component = () => {
   };
 
   createEffect(() => {
-    if (!isReady() || alreadyFetched()) return;
+    if (!isRedditApiReady() || alreadyFetched()) return;
 
     fetchSomeMemes();
     setAlreadyFetched(true);
   });
 
-  createEffect(() => console.log(posts()));
-
   const tabVisibilityHandler = () => {
     if (document.hidden) {
-      console.log('tab deactivated, archiving meme that was shown');
+
       if (!firstMeme()) return;
 
       setPreviouslyShown(prev => prev.concat(firstMeme()!.id))
@@ -63,7 +61,6 @@ const App: Component = () => {
       // remove post from list of memes to be shown
       setPosts(prev => prev.slice(1));
     } else {
-        console.log('tab activated');
         fetchSomeMemes();
     }
   };
@@ -72,7 +69,6 @@ const App: Component = () => {
     document.addEventListener('visibilitychange', tabVisibilityHandler);
     return () => document.removeEventListener('visibilitychange', tabVisibilityHandler);
   });
-
 
   const currentPost = () => {
     if (!firstMeme()) return <p>Loading your memes...</p>

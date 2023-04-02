@@ -77,7 +77,7 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
   const get = async (subreddit: string, url: string, data: Record<string, string>) => {
 
     if (!token()) {
-      console.log('token not yet valid, skipping get request');
+      console.warn('token not yet valid, skipping get request');
       return;
     }
 
