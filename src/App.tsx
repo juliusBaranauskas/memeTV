@@ -25,10 +25,21 @@ const App: Component = () => {
 
   const updatePostList = (retrievedPosts: Post[]) => {
     // filter already fetched
-    let newPosts = retrievedPosts.filter(post => posts().find(oldPost => oldPost.id === post.id) === undefined);
+    const existingPosts = posts();
+    let newPosts = retrievedPosts.filter(post => existingPosts.find(oldPost => oldPost.id === post.id) === undefined);
     
     // filter memes already shown
     newPosts = newPosts.filter(post => !previouslyShown().includes(post.id));
+
+    if (newPosts.length + existingPosts.length > 100) {
+      // remove the posts older than a day
+      const dayAgo = new Date().getUTCMilliseconds() - 1000 * 60 * 60 * 24;
+      let remainingPosts = existingPosts.filter(p => p.createdAtUTC > dayAgo);
+
+      newPosts = remainingPosts.concat(newPosts).sort((a, b) => b.score - a.score).slice(0, 99);
+      setPosts(newPosts);
+      return;
+    }
     setPosts(prev => prev.concat(newPosts));
   };
 
