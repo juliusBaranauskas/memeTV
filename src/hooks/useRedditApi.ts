@@ -27,12 +27,12 @@ type RedditApi = {
 const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
   const { appId, appSecret } = redditCredentials;
   const [token, setToken] = createSignal<string | undefined>(undefined);
-  const [tokenExpireDate, setTokenExpireDate] = createSignal<string | undefined>(undefined);
+  const [refreshTokenInSeconds, setRefreshTokenInSeconds] = createSignal<number | undefined>(undefined);
   const [latestAfter, setLatestAfter] = createSignal<Record<string, string> | undefined>(undefined);
 
   const authHeader = () => `Basic ${Buffer.from(`${appId}:${appSecret}`).toString('base64')}`;
 
-  createEffect(() => {
+  const retrieveAccessToken = () => {
     const body = new FormData();
     body.append('grant_type', 'client_credentials');
     body.append('username', appId);
@@ -47,27 +47,32 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
       body,
     }).then(async response => {
       if (response.status !== 200) {
-        console.error('AAAAA it failed to get token');
+        console.error('AAAAA it failed to get reddit access token');
         return;
       }
 
       const {
         access_token: accessToken,
         expires_in: expiresIn,
-        token_type: tokenType
+        token_type: tokenType,
       } = await response.json()
 
       setToken(`${tokenType} ${accessToken}`);
-      // Shorten token expiration time by half to avoid race condition where
-      // token is valid at request time, but server will reject it
-      setTokenExpireDate(((Date.now() / 1000) + expiresIn) / 2);
+      setRefreshTokenInSeconds(expiresIn / 2);
     });
-  });
-
-  const getLatestAfter = (subredditName: string) => {
-    console.log(subredditName, latestAfter());
-    return !!latestAfter() ? latestAfter()![subredditName] : undefined;
   };
+
+  createEffect(() => retrieveAccessToken());
+
+  const getLatestAfter = (subredditName: string) => !!latestAfter() ? latestAfter()![subredditName] : undefined;
+
+  createEffect(() => {
+    const refreshTokenIn = refreshTokenInSeconds();
+
+    if (!refreshTokenIn || refreshTokenIn === 0) return;
+
+    setTimeout(retrieveAccessToken, refreshTokenIn * 1000);
+  });
 
   const get = async (subreddit: string, url: string, data: Record<string, string>) => {
 
@@ -92,6 +97,11 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
         'Authorization': token()!,
       },
     });
+
+    if (response.status === 401) {
+      retrieveAccessToken();
+      return;
+    }
 
     if (response.status !== 200) {
       console.error('AAAAA it failed to get reddit stuff');
