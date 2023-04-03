@@ -6,7 +6,6 @@ const subreddits = [
   'memes',
   'aww',
   'ProgrammerHumor',
-  'okbuddyretard',
   'funny',
   'eyebleach',
   'mademesmile',
