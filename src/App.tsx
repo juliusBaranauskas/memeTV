@@ -47,7 +47,7 @@ const App: Component = () => {
 
     const randomizedSubreddit = subreddits[Math.floor(Math.random()*(subreddits.length - 1))];
 
-    get(randomizedSubreddit, `/r/${randomizedSubreddit}/rising`, {
+    get(randomizedSubreddit, `/r/${randomizedSubreddit}/hot`, {
       g: 'GLOBAL',
       timeframe: 'day',
       limit: `${count}`,
