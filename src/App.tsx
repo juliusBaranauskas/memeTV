@@ -80,10 +80,22 @@ const App: Component = () => {
     return () => document.removeEventListener('visibilitychange', tabVisibilityHandler);
   });
 
-  const currentPost = () => {
-    if (!firstMeme()) return <p>Loading your memes...</p>
+  createEffect(() => {
+    if (posts().length < 2) {
+      fetchSomeMemes();
+    }
+  });
 
-    return <img src={firstMeme()!.url} class={styles.memeImage} alt="meme" />;
+  const handleFailedToLoadImage = () => {
+    // ignore the image on failed request
+    setPosts(prev => prev.slice(1));
+  };
+
+  const currentPost = () => {
+    const currentFirstMeme = firstMeme();
+    if (!currentFirstMeme) return <img src='https://http.cat/404' class={styles.memeImage} alt="image not found" />
+
+    return <img src={currentFirstMeme.url} class={styles.memeImage} alt="meme" onError={handleFailedToLoadImage} />;
   };
 
   if (!appId || !appSecret) return <div>Missing credentials</div>;
