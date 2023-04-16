@@ -66,6 +66,16 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
 
   const getLatestAfter = (subredditName: string) => !!latestAfter() ? latestAfter()![subredditName] : undefined;
 
+  const resetAfter = (delayInMs: number = 1000 * 60 * 60 * 24) => {
+    setTimeout(() => {
+      setLatestAfter(undefined);
+      resetAfter();
+    }, delayInMs);
+  };
+
+  // reset continuation so the posts get refreshed every day
+  createEffect(() => resetAfter());
+
   createEffect(() => {
     const refreshTokenIn = refreshTokenInSeconds();
 
