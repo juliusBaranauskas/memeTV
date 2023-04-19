@@ -1,33 +1,55 @@
 .App {
+  display: flex;
+  flex-direction: column;
   text-align: center;
   min-height: 0;
   height: 100vh;
-  background-color: #282c34;
-}
-
-.header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
 .memeImage {
   text-align: center;
-  position: absolute;
   inset: 0;
   margin: auto;
   height: 90%;
+  max-width: 90%;
 }
 
 .postHeader {
   display: flex;
-  max-width: 40%;
-  border-radius: 4px;
-  border-color: brown;
-  background-color: aqua;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 1rem;
+}
+
+.postHeader > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  height: 100%;
+  border-radius: 0.5vh;
+}
+
+#ratingWrapper {
+  background-color: #55a455;
+  min-width: 5rem;
+  padding: 0.5rem;
+  margin-left: 0;
+}
+
+#headerText {
+  color: #55a455;
+  background-color: #32363e;
+  padding: 0.5rem;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+#metaDataWrapper {
+  display: flex;
+  flex-direction: column;
+  background-color: #55a455;
+  padding: 0.5rem;
+  align-items: end;
+  margin-right: 0;
 }

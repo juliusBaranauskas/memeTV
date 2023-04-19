@@ -10,7 +10,7 @@ export type Post = {
   score: number;
   title: string;
   ups: number;
-  downs:number;
+  downs: number;
   url: string;
 };
 

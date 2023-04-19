@@ -100,12 +100,65 @@ const App: Component = () => {
 
   if (!appId || !appSecret) return <div>Missing credentials</div>;
 
+  const firstMemeTitle = () => {
+    const currentFirstMeme = firstMeme();
+    return currentFirstMeme?.title;
+  };
+
+  const firstMemeAuthor = () => {
+    const currentFirstMeme = firstMeme();
+    return currentFirstMeme?.authorName;
+  };
+
+  const firstMemeScore = () => {
+    const currentFirstMeme = firstMeme();
+    return currentFirstMeme?.score;
+  };
+
+  const firstMemeSubreddit = () => {
+    const currentFirstMeme = firstMeme();
+    return currentFirstMeme?.subreddit;
+  };
+
   return (
     <div class={styles.App}>
-      <div class={styles.postHeader}></div>
+      <PostHeader title={firstMemeTitle} authorName={firstMemeAuthor} score={firstMemeScore} subreddit={firstMemeSubreddit} />
         {currentPost()}
     </div>
   );
 };
 
 export default App;
+
+type PostHeaderProps = {
+  title: () => string | undefined;
+  authorName: () => string | undefined;
+  subreddit: () => string | undefined;
+  score: () => number | undefined;
+};
+
+const PostHeader = ({ title, score, authorName, subreddit }: PostHeaderProps) => {
+
+  return (
+    <div class={styles.postHeader}>
+      <div id={styles.ratingWrapper}>
+        <span>
+          {score() ?? 0 > 0 ? '^' : '\\/'}{score()}
+        </span>
+      </div>
+      <div id={styles.headerText}>
+        <span>
+          {title()}
+        </span>
+      </div>
+      <div id={styles.metaDataWrapper}>
+        <span>
+          {'r/' + subreddit()}
+        </span>
+        <span>
+          {'u/' + authorName()}
+        </span>
+      </div>
+    </div>
+  );
+}
