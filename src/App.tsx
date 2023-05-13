@@ -2,7 +2,7 @@ import { Component, createEffect, createSignal } from 'solid-js';
 import useRedditApi, { Post } from './hooks/useRedditApi';
 import styles from './App.module.css';
 
-const subreddits = [
+const defaultSubreddits = [
   'memes',
   'aww',
   'ProgrammerHumor',
@@ -14,6 +14,8 @@ const subreddits = [
 const App: Component = () => {
   const appId = localStorage.getItem('app_id');
   const appSecret = localStorage.getItem('app_secret');
+  const subreddits = localStorage.getItem('subreddits')?.split(',') ?? defaultSubreddits;
+
   const { get, isReady: isRedditApiReady } = useRedditApi({ appId: appId!, appSecret: appSecret! });
 
   const [posts, setPosts] = createSignal<Post[]>([]);
