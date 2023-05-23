@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { Accessor, createEffect, createMemo, createSignal } from "solid-js";
 import { Buffer } from 'buffer';
 import { encode } from "querystring";
 
@@ -15,8 +15,8 @@ export type Post = {
 };
 
 type RedditCredentials = {
-  appId: string,
-  appSecret: string,
+  appId: Accessor<string>,
+  appSecret: Accessor<string>,
 };
 
 type RedditApi = {
@@ -30,13 +30,13 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
   const [refreshTokenInSeconds, setRefreshTokenInSeconds] = createSignal<number | undefined>(undefined);
   const [latestAfter, setLatestAfter] = createSignal<Record<string, string> | undefined>(undefined);
 
-  const authHeader = () => `Basic ${Buffer.from(`${appId}:${appSecret}`).toString('base64')}`;
+  const authHeader = createMemo(() => `Basic ${Buffer.from(`${appId()}:${appSecret()}`).toString('base64')}`);
 
   const retrieveAccessToken = () => {
     const body = new FormData();
     body.append('grant_type', 'client_credentials');
-    body.append('username', appId);
-    body.append('password', appSecret);
+    body.append('username', appId());
+    body.append('password', appSecret());
     body.append('scope', 'read');
 
     fetch('https://www.reddit.com/api/v1/access_token', {
