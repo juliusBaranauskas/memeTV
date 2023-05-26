@@ -1,5 +1,6 @@
-import { Component, createEffect, createSignal } from 'solid-js';
+import { Component, Show, createEffect, createMemo, createSignal } from "solid-js";
 import useRedditApi, { Post } from './hooks/useRedditApi';
+import { createStorageSignal } from "@solid-primitives/storage";
 import styles from './App.module.css';
 
 const defaultSubreddits = [
@@ -11,12 +12,30 @@ const defaultSubreddits = [
   'mademesmile',
 ];
 
-const App: Component = () => {
-  const appId = localStorage.getItem('app_id');
-  const appSecret = localStorage.getItem('app_secret');
-  const subreddits = localStorage.getItem('subreddits')?.split(',') ?? defaultSubreddits;
+const useLocalStorageValueWithDefault = (key: string, initialValue: string) => {
+  const [valueAccessor] = createStorageSignal<string>(key, initialValue);
+  return () => valueAccessor() ?? initialValue;
+}
 
-  const { get, isReady: isRedditApiReady } = useRedditApi({ appId: appId!, appSecret: appSecret! });
+const misingAppIdValue = "MISSING app id";
+const misingAppSecretValue = "MISSING app secret";
+
+const App: Component = () => {
+  const appId = useLocalStorageValueWithDefault("app_id", misingAppIdValue);
+  const appSecret = useLocalStorageValueWithDefault("app_secret", misingAppSecretValue);
+  const subredditsStr = useLocalStorageValueWithDefault(
+    "subreddits",
+    defaultSubreddits.join(",")
+  );
+  const subreddits = createMemo(
+    () =>
+      subredditsStr()
+        ?.split(",")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0) ?? defaultSubreddits
+  );
+
+  const { get, isReady: isRedditApiReady } = useRedditApi({ appId, appSecret });
 
   const [posts, setPosts] = createSignal<Post[]>([]);
   const [previouslyShown, setPreviouslyShown] = createSignal<string[]>([]);
@@ -47,7 +66,7 @@ const App: Component = () => {
   const fetchSomeMemes = (count: number = 3) => {
     if (!isRedditApiReady()) return;
 
-    const randomizedSubreddit = subreddits[Math.floor(Math.random()*(subreddits.length - 1))];
+    const randomizedSubreddit = subreddits()[Math.floor(Math.random()*(subreddits().length - 1))];
 
     get(randomizedSubreddit, `/r/${randomizedSubreddit}/hot`, {
       g: 'GLOBAL',
@@ -100,8 +119,6 @@ const App: Component = () => {
     return <img src={currentFirstMeme.url} class={styles.memeImage} alt="meme" onError={handleFailedToLoadImage} />;
   };
 
-  if (!appId || !appSecret) return <div>Missing credentials</div>;
-
   const firstMemeTitle = () => {
     const currentFirstMeme = firstMeme();
     return currentFirstMeme?.title;
@@ -123,10 +140,14 @@ const App: Component = () => {
   };
 
   return (
-    <div class={styles.App}>
-      <PostHeader title={firstMemeTitle} authorName={firstMemeAuthor} score={firstMemeScore} subreddit={firstMemeSubreddit} />
-        {currentPost()}
-    </div>
+    <>
+      <Show when={appId() !== misingAppIdValue && appSecret() !== misingAppSecretValue} fallback={<div>Missing credentials</div>}>
+        <div class={styles.App}>
+          <PostHeader title={firstMemeTitle} authorName={firstMemeAuthor} score={firstMemeScore} subreddit={firstMemeSubreddit} />
+            {currentPost()}
+        </div>
+      </Show>
+    </>
   );
 };
 
