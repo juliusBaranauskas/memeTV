@@ -141,13 +141,12 @@ const App: Component = () => {
 
   return (
     <>
-      <Show when={appId() === misingAppIdValue || appSecret() === misingAppSecretValue}>
-        <div>Missing credentials</div>
+      <Show when={appId() !== misingAppIdValue || appSecret() !== misingAppSecretValue} fallback={<div>Missing credentials</div>}>
+        <div class={styles.App}>
+          <PostHeader title={firstMemeTitle} authorName={firstMemeAuthor} score={firstMemeScore} subreddit={firstMemeSubreddit} />
+            {currentPost()}
+        </div>
       </Show>
-      <div class={styles.App}>
-        <PostHeader title={firstMemeTitle} authorName={firstMemeAuthor} score={firstMemeScore} subreddit={firstMemeSubreddit} />
-          {currentPost()}
-      </div>
     </>
   );
 };
