@@ -83,17 +83,25 @@ const App: Component = () => {
   });
 
   const tabVisibilityHandler = () => {
-    if (document.hidden) {
-
-      if (!firstMeme()) return;
-
-      setPreviouslyShown(prev => prev.concat(firstMeme()!.id))
-
-      // remove post from list of memes to be shown
-      setPosts(prev => prev.slice(1));
-    } else {
-        fetchSomeMemes();
+    if (!document.hidden) {
+      fetchSomeMemes();
+      return;
     }
+    
+    if (!firstMeme()) return;
+
+    setPreviouslyShown(prev => {
+      // only store limited amount of previous posts since continuation token
+      // should already ensure same posts are not queried again
+      if (prev.length > 499) {
+        prev.shift();
+      }
+
+      return prev.concat(firstMeme()!.id)
+    });
+
+    // remove post from list of memes to be shown
+    setPosts(prev => prev.slice(1));
   };
 
   createEffect(() => {
