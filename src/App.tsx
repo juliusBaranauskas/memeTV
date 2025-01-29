@@ -1,6 +1,6 @@
 import { Component, Show, createEffect, createMemo, createSignal } from "solid-js";
 import useRedditApi, { Post } from './hooks/useRedditApi';
-import { createStorageSignal } from "@solid-primitives/storage";
+import { makePersisted } from "@solid-primitives/storage";
 import styles from './App.module.css';
 
 const defaultSubreddits = [
@@ -13,7 +13,7 @@ const defaultSubreddits = [
 ];
 
 const useLocalStorageValueWithDefault = (key: string, initialValue: string) => {
-  const [valueAccessor] = createStorageSignal<string>(key, initialValue);
+  const [valueAccessor] = makePersisted(createSignal(initialValue), { name: key, deserialize: x => x });
   return () => valueAccessor() ?? initialValue;
 }
 
