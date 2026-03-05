@@ -1,4 +1,4 @@
-import { Accessor, createEffect, createMemo, createSignal } from "solid-js";
+import { Accessor, createEffect, createMemo, createSignal, onSettled } from "solid-js";
 import { Buffer } from 'buffer';
 import { encode } from "querystring";
 
@@ -62,7 +62,7 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
     });
   };
 
-  createEffect(() => retrieveAccessToken());
+  createEffect(() => authHeader(), () => retrieveAccessToken());
 
   const getLatestAfter = (subredditName: string) => !!latestAfter() ? latestAfter()![subredditName] : undefined;
 
@@ -73,16 +73,15 @@ const useRedditApi = (redditCredentials: RedditCredentials): RedditApi => {
     }, delayInMs);
   };
 
-  // reset continuation so the posts get refreshed every day
-  createEffect(() => resetAfter());
+  onSettled(() => resetAfter());
 
-  createEffect(() => {
-    const refreshTokenIn = refreshTokenInSeconds();
-
-    if (!refreshTokenIn || refreshTokenIn === 0) return;
-
-    setTimeout(retrieveAccessToken, refreshTokenIn * 1000);
-  });
+  createEffect(
+    () => refreshTokenInSeconds(),
+    (refreshTokenIn) => {
+      if (!refreshTokenIn || refreshTokenIn === 0) return;
+      setTimeout(retrieveAccessToken, refreshTokenIn * 1000);
+    }
+  );
 
   const get = async (subreddit: string, url: string, data: Record<string, string>) => {
 

@@ -10,8 +10,10 @@
   text-align: center;
   inset: 0;
   margin: auto;
-  height: 90%;
+  max-height: 90%;
   max-width: 90%;
+  object-fit: contain;
+  flex: 1;
 }
 
 .postHeader {

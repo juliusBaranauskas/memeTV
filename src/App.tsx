@@ -1,6 +1,5 @@
 import { Component, Show, createEffect, createMemo, createSignal } from "solid-js";
 import useRedditApi, { Post } from './hooks/useRedditApi';
-import { makePersisted } from "@solid-primitives/storage";
 import styles from './App.module.css';
 
 const defaultSubreddits = [
@@ -13,8 +12,9 @@ const defaultSubreddits = [
 ];
 
 const useLocalStorageValueWithDefault = (key: string, initialValue: string) => {
-  const [valueAccessor] = makePersisted(createSignal(initialValue), { name: key, deserialize: x => x });
-  return () => valueAccessor() ?? initialValue;
+  const stored = localStorage.getItem(key);
+  const [value] = createSignal(stored !== null ? stored : initialValue);
+  return value;
 }
 
 const misingAppIdValue = "MISSING app id";
@@ -75,12 +75,14 @@ const App: Component = () => {
     }).then(updatePostList);
   };
 
-  createEffect(() => {
-    if (!isRedditApiReady() || alreadyFetched()) return;
-
-    fetchSomeMemes();
-    setAlreadyFetched(true);
-  });
+  createEffect(
+    () => ({ ready: isRedditApiReady(), fetched: alreadyFetched() }),
+    ({ ready, fetched }) => {
+      if (!ready || fetched) return;
+      fetchSomeMemes();
+      setAlreadyFetched(true);
+    }
+  );
 
   const tabVisibilityHandler = () => {
     if (!document.hidden) {
@@ -104,16 +106,20 @@ const App: Component = () => {
     setPosts(prev => prev.slice(1));
   };
 
-  createEffect(() => {
-    document.addEventListener('visibilitychange', tabVisibilityHandler);
-    return () => document.removeEventListener('visibilitychange', tabVisibilityHandler);
-  });
-
-  createEffect(() => {
-    if (posts().length < 2) {
-      fetchSomeMemes();
+  createEffect(
+    () => undefined,
+    () => {
+      document.addEventListener('visibilitychange', tabVisibilityHandler);
+      return () => document.removeEventListener('visibilitychange', tabVisibilityHandler);
     }
-  });
+  );
+
+  createEffect(
+    () => posts().length,
+    (length) => {
+      if (length < 2) fetchSomeMemes();
+    }
+  );
 
   const handleFailedToLoadImage = () => {
     // ignore the image on failed request
