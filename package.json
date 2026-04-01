@@ -19,7 +19,7 @@
     "@solidjs/web": "next",
     "buffer": "^6.0.3",
     "querystring": "^0.2.1",
-    "solid-js": "2.0.0-beta.0"
+    "solid-js": "2.0.0-beta.4"
   },
   "resolutions": {
     "@babel/helpers": "7.26.10"
