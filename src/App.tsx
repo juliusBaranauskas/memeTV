@@ -1,5 +1,6 @@
 import { Component, Show, createEffect, createMemo, createSignal } from "solid-js";
 import useRedditApi, { Post } from './hooks/useRedditApi';
+import * as QRCode from 'qrcode';
 import styles from './App.module.css';
 
 const defaultSubreddits = [
@@ -153,11 +154,16 @@ const App: Component = () => {
     return currentFirstMeme?.subreddit;
   };
 
+  const firstMemeUrl = () => {
+    const currentFirstMeme = firstMeme();
+    return currentFirstMeme?.url;
+  };
+
   return (
     <>
       <Show when={appId() !== misingAppIdValue && appSecret() !== misingAppSecretValue} fallback={<div>Missing credentials</div>}>
         <div class={styles.App}>
-          <PostHeader title={firstMemeTitle} authorName={firstMemeAuthor} score={firstMemeScore} subreddit={firstMemeSubreddit} />
+          <PostHeader title={firstMemeTitle} authorName={firstMemeAuthor} score={firstMemeScore} subreddit={firstMemeSubreddit} postUrl={firstMemeUrl} />
             {currentPost()}
         </div>
       </Show>
@@ -172,9 +178,21 @@ type PostHeaderProps = {
   authorName: () => string | undefined;
   subreddit: () => string | undefined;
   score: () => number | undefined;
+  postUrl: () => string | undefined;
 };
 
-const PostHeader = ({ title, score, authorName, subreddit }: PostHeaderProps) => {
+const PostHeader = ({ title, score, authorName, subreddit, postUrl }: PostHeaderProps) => {
+  const [qrCodeDataUrl, setQrCodeDataUrl] = createSignal<string>("");
+
+  createEffect(
+    () => postUrl(),
+    () => {
+      const url = postUrl();
+      if (url) {
+        QRCode.toDataURL(url).then(setQrCodeDataUrl);
+      }
+    }
+  );
 
   return (
     <div class={styles.postHeader}>
@@ -195,6 +213,9 @@ const PostHeader = ({ title, score, authorName, subreddit }: PostHeaderProps) =>
         <span>
           {'u/' + authorName()}
         </span>
+      </div>
+      <div id={styles.qrCodeWrapper}>
+        <img src={qrCodeDataUrl()} alt="QR code" />
       </div>
     </div>
   );
