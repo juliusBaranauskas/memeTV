@@ -215,7 +215,7 @@ const PostHeader = ({ title, score, authorName, subreddit, postUrl }: PostHeader
         </span>
       </div>
       <div id={styles.qrCodeWrapper}>
-        <img src={qrCodeDataUrl()} alt="QR code" />
+        <img src={qrCodeDataUrl()} alt="qr-code" />
       </div>
     </div>
   );
